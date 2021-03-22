@@ -3,6 +3,8 @@ import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
 import Peixe from '../models/Peixe';
+import { getManager } from "typeorm";
+
 
 class PeixeController {
 
@@ -10,15 +12,18 @@ class PeixeController {
     async index(req: Request, res: Response) {
         const repository = getRepository(Peixe);
         const peixes = await repository.find({
+            where: { user_id: req.userId },
             order: { 'id': 'DESC' }
         });
 
-        // const ult_peixe: any = await repository.findOne({
-        //     where: { tipo_peixe: 'TESTE' },
-        //     order: { 'id': 'DESC' }
-        // });
-        // res.header('retorno', ult_peixe.tipo_peixe);
+        const ult_peixe = await getManager()
+            .createQueryBuilder(Peixe, 'peixe')
+            .where({ user_id: req.userId })
+            .orderBy('id', 'DESC')
+            .getOne()
 
+        res.header('retorno', ult_peixe?.tipo_peixe);
+        
         return res.json(peixes);
     }
 
